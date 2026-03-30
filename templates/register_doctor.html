@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto animate-in fade-in zoom-in duration-700 mt-8 mb-16 px-4">
+    <div class="bg-white rounded-[3rem] shadow-[0_20px_60px_-15px_rgba(15,23,42,0.1)] border border-slate-100 p-10 md:p-14 relative overflow-hidden">
+        
+        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 to-teal-600"></div>
+
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-emerald-50 rounded-2xl mb-6">
+                <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Join the Medical Faculty</h2>
+            <p class="text-slate-400 mt-2 text-sm font-medium">Verify your credentials and start managing your practice.</p>
+        </div>
+        
+        <form action="{{ url_for('register_doctor') }}" method="POST" class="space-y-8">
+            
+            <div class="space-y-6">
+                <h3 class="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-4">Identity & Contact</h3>
+                <div class="group">
+                    <label class="block text-xs font-bold text-slate-500 mb-2 ml-1">Full Legal Name</label>
+                    <input type="text" name="name" required 
+                           class="block w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-4 focus:ring-emerald-50 transition-all placeholder-slate-300" 
+                           placeholder="e.g. Dr. Jane Smith">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-500 mb-2 ml-1">Username</label>
+                        <input type="text" name="username" required 
+                               class="block w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-4 focus:ring-emerald-50 transition-all">
+                    </div>
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-500 mb-2 ml-1">Email Address</label>
+                        <input type="email" name="email" required 
+                               class="block w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-4 focus:ring-emerald-50 transition-all">
+                    </div>
+                </div>
+
+                <div class="group">
+                    <label class="block text-xs font-bold text-slate-500 mb-2 ml-1">Contact Number</label>
+                    <input type="text" name="contact_no" placeholder="e.g. +91 12345 67890" required 
+                           class="block w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-4 focus:ring-emerald-50 transition-all">
+                </div>
+            </div>
+
+            <hr class="border-slate-50">
+
+            <div class="space-y-6">
+                <h3 class="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-4">Credentials & Workplace</h3>
+                <div class="group">
+                    <label class="block text-xs font-bold text-slate-500 mb-2 ml-1">Primary Specialization</label>
+                    <input type="text" name="specialization" placeholder="e.g. Interventional Cardiology" required 
+                           class="block w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-4 focus:ring-emerald-50 transition-all">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-500 mb-2 ml-1">Experience (Years)</label>
+                        <input type="number" name="experience" required 
+                               class="block w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-4 focus:ring-emerald-50 transition-all">
+                    </div>
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-500 mb-2 ml-1">License Number</label>
+                        <input type="text" name="license_no" required 
+                               class="block w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-4 focus:ring-emerald-50 transition-all">
+                    </div>
+                </div>
+
+                <div class="group">
+                    <label class="block text-xs font-bold text-slate-500 mb-2 ml-1">Assigned Medical Center</label>
+                    <select name="medical_center_id" 
+                            class="block w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-4 focus:ring-emerald-50 transition-all appearance-none cursor-pointer">
+                        {% for center in centers %}
+                            <option value="{{ center.id }}">{{ center.name }} ({{ center.type }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <hr class="border-slate-50">
+
+            <div class="group">
+                <label class="block text-xs font-bold text-slate-500 mb-2 ml-1">Access Password</label>
+                <input type="password" name="password" required 
+                       class="block w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-4 focus:ring-emerald-50 transition-all placeholder-slate-300"
+                       placeholder="••••••••">
+            </div>
+
+            <div class="pt-6">
+                <button type="submit" class="w-full bg-slate-900 text-white font-bold py-5 rounded-[2rem] shadow-xl shadow-slate-200 hover:bg-emerald-600 transition-all transform active:scale-[0.98] uppercase tracking-[0.2em] text-xs">
+                    Complete Registration
+                </button>
+                <p class="text-center text-[10px] text-slate-400 mt-6 font-medium">
+                    Already a member? <a href="{{ url_for('login_doctor') }}" class="text-emerald-600 font-bold hover:underline">Sign In</a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

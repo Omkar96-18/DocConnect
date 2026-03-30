@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
+    <div class="mb-8 text-center">
+        <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Professional Profile</h2>
+        <p class="text-slate-500 mt-2">Manage your public presence and contact information.</p>
+    </div>
+
+    <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-10">
+        <form method="POST" class="space-y-8">
+            
+            <div class="flex justify-center mb-8">
+                <div class="relative group">
+                    <div class="w-24 h-24 bg-blue-50 rounded-[2rem] flex items-center justify-center text-blue-600 text-3xl font-bold border-2 border-dashed border-blue-200 group-hover:border-blue-400 transition-colors">
+                        {{ doctor.name[0] }}
+                    </div>
+                    <div class="absolute -bottom-2 -right-2 bg-white p-2 rounded-xl shadow-md border border-slate-100">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="group">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Display Name</label>
+                    <input type="text" name="name" value="{{ doctor.name }}" 
+                        class="w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-2 focus:ring-blue-100 transition-all placeholder-slate-300"
+                        placeholder="Dr. Full Name">
+                </div>
+
+                <div class="group">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Specialization</label>
+                    <input type="text" name="specialization" value="{{ doctor.specialization }}" 
+                        class="w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-2 focus:ring-blue-100 transition-all"
+                        placeholder="e.g., Cardiology">
+                </div>
+
+                <div class="group">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Contact Number</label>
+                    <input type="text" name="contact" value="{{ doctor.contact_no }}" 
+                        class="w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-2 focus:ring-blue-100 transition-all"
+                        placeholder="10-digit number">
+                </div>
+            </div>
+
+            <div class="pt-6">
+                <button type="submit" 
+                    class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-lg shadow-slate-200 hover:bg-blue-600 hover:shadow-blue-100 transition-all transform hover:-translate-y-1">
+                    Save Changes
+                </button>
+                <p class="text-center text-slate-400 text-xs mt-6 italic">
+                    These changes will be visible to patients immediately.
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

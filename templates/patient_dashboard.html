@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-8 animate-in fade-in duration-700">
+    
+    <aside class="w-full lg:w-1/4 space-y-6">
+        <div class="bg-white p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-100 sticky top-24">
+            <div class="flex items-center gap-2 mb-6">
+                <div class="w-2 h-6 bg-blue-600 rounded-full"></div>
+                <h3 class="text-xl font-bold text-slate-800">Refine Search</h3>
+            </div>
+
+            <form method="GET" action="{{ url_for('patient_dashboard') }}" class="space-y-6">
+                <div class="group">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Specialization</label>
+                    <input type="text" name="specialty" value="{{ request.args.get('specialty', '') }}" 
+                           placeholder="e.g. Cardiology" 
+                           class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm focus:ring-2 focus:ring-blue-100 transition-all">
+                </div>
+
+                <div class="group">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Location</label>
+                    <input type="text" name="location" value="{{ request.args.get('location', '') }}" 
+                           placeholder="City or Street" 
+                           class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm focus:ring-2 focus:ring-blue-100 transition-all">
+                </div>
+
+                <div class="group">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2">Min. Experience</label>
+                    <div class="relative">
+                        <input type="number" name="experience" value="{{ request.args.get('experience', 0) }}" 
+                               class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm focus:ring-2 focus:ring-blue-100 transition-all">
+                        <span class="absolute right-4 top-4 text-xs text-slate-400">Years</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 space-y-3">
+                    <button type="submit" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-lg shadow-slate-200 hover:bg-blue-600 transition-all transform active:scale-95">
+                        Apply Filters
+                    </button>
+                    <a href="{{ url_for('patient_dashboard') }}" class="block text-center text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors">
+                        Reset All Filters
+                    </a>
+                </div>
+            </form>
+        </div>
+    </aside>
+
+    <main class="flex-1">
+    <header class="mb-8 flex justify-between items-end">
+        <div>
+            <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Available Clinicians</h2>
+            <p class="text-slate-500 text-sm mt-1">Connect with verified medical professionals.</p>
+        </div>
+        <div class="hidden md:block text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-4 py-2 rounded-full">
+            {{ doctors|length }} Providers Found
+        </div>
+    </header>
+    
+    {% if doctors %}
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {% for doctor in doctors %}
+        <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-xl hover:shadow-blue-900/5 transition-all group">
+            
+            <div class="flex justify-between items-start mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 bg-blue-50 rounded-3xl flex items-center justify-center text-blue-600 text-xl font-bold border border-blue-100">
+                        {{ doctor.name[0] }}
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Dr. {{ doctor.name }}</h4>
+                        <p class="text-sm font-semibold text-blue-500 tracking-tight">{{ doctor.specialization }}</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">{{ doctor.years_of_experience }} Years Experience</p>
+                    </div>
+                </div>
+                <span class="bg-slate-50 text-slate-500 text-[10px] font-bold px-3 py-1 rounded-full border border-slate-100 uppercase tracking-wider">
+                    {{ doctor.center_type }}
+                </span>
+            </div>
+            
+            <div class="bg-slate-50/50 rounded-3xl p-5 mb-6">
+                <div class="flex items-center gap-2 text-sm text-slate-600 mb-1">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-7h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    <span class="font-bold">{{ doctor.center_name }}</span>
+                </div>
+                <p class="text-xs text-slate-400 ml-6 italic">{{ doctor.center_location }}</p>
+            </div>
+
+            <form action="{{ url_for('request_appointment') }}" method="POST" class="space-y-3">
+                <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
+                <div class="flex gap-3">
+                    <div class="relative flex-1">
+                        <input type="datetime-local" name="appointment_time" required 
+                               class="w-full text-xs font-bold bg-white border-2 border-slate-100 rounded-2xl p-3 focus:border-blue-200 focus:ring-0 transition-all">
+                    </div>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-2xl text-xs font-bold hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all transform active:scale-95">
+                        Book Now
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-[3rem] p-20 text-center border border-dashed border-slate-200">
+        <p class="text-slate-400 font-medium italic">No doctors match your current filters.</p>
+    </div>
+    {% endif %}
+</main>
+</div>
+{% endblock %}

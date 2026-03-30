@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto animate-in fade-in duration-700">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+        <div>
+            <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Worklist</h2>
+            <p class="text-slate-500 text-sm mt-1">Manage your upcoming patient requests and daily flow.</p>
+        </div>
+        <div class="flex items-center gap-3 bg-white p-2 pr-4 rounded-2xl shadow-sm border border-slate-100">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold">
+                {{ session.get('name')[0] if session.get('name') else 'D' }}
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Clinician</p>
+                <p class="text-sm font-semibold text-slate-700">Dr. {{ session.get('name') }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <p class="text-slate-400 text-xs font-bold uppercase mb-1">Pending Requests</p>
+            <p class="text-3xl font-bold text-slate-800">{{ appointments|selectattr('status', 'equalto', 'pending')|list|length }}</p>
+        </div>
+        <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100 shadow-sm">
+            <p class="text-blue-400 text-xs font-bold uppercase mb-1">Confirmed Today</p>
+            <p class="text-3xl font-bold text-blue-700">{{ appointments|selectattr('status', 'equalto', 'approved')|list|length }}</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+        <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/30">
+            <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Incoming Requests
+            </h3>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="text-slate-400 text-xs uppercase tracking-widest">
+                        <th class="px-8 py-4 text-left font-semibold">Patient Details</th>
+                        <th class="px-8 py-4 text-left font-semibold">Schedule</th>
+                        <th class="px-8 py-4 text-left font-semibold">Status</th>
+                        <th class="px-8 py-4 text-right font-semibold">Decisions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for appt in appointments %}
+                    <tr class="hover:bg-slate-50/50 transition-colors group">
+                        <td class="px-8 py-5">
+                            <div class="font-bold text-slate-700">{{ appt.patient_name }}</div>
+                            <div class="text-xs text-slate-400">{{ appt.patient_contact }}</div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="text-sm font-medium text-slate-600">{{ appt.appointment_date.strftime('%b %d, %Y') }}</div>
+                            <div class="text-xs text-blue-500 font-semibold">{{ appt.appointment_date.strftime('%I:%M %p') }}</div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full 
+                                {% if appt.status == 'pending' %} bg-amber-50 text-amber-600 border border-amber-100
+                                {% elif appt.status == 'approved' %} bg-emerald-50 text-emerald-600 border border-emerald-100
+                                {% else %} bg-rose-50 text-rose-600 border border-rose-100 {% endif %}">
+                                {{ appt.status }}
+                            </span>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            {% if appt.status == 'pending' %}
+                            <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <form action="{{ url_for('update_appointment_status', appointment_id=appt.id, status='approved') }}" method="POST">
+                                    <button class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition-all hover:scale-105">
+                                        Confirm
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('update_appointment_status', appointment_id=appt.id, status='rejected') }}" method="POST">
+                                    <button class="bg-white border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 text-xs font-bold px-4 py-2 rounded-xl transition-all">
+                                        Decline
+                                    </button>
+                                </form>
+                            </div>
+                            {% else %}
+                            <a href="{{ url_for('patient_details', patient_id=appt.patient_id) }}" class="text-xs font-bold text-blue-600 hover:text-blue-800">
+                                View Records →
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="px-8 py-20 text-center">
+                            <div class="text-slate-300 mb-2">
+                                <svg class="w-12 h-12 mx-auto opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                            </div>
+                            <p class="text-slate-400 italic">No appointment requests in your queue.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

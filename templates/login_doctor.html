@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-md mx-auto animate-in fade-in zoom-in duration-500 mt-16 px-4">
+    <div class="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-slate-100 p-10 overflow-hidden relative">
+        
+        <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
+
+        <div class="text-center mb-10 relative z-10">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-slate-900 rounded-[2rem] shadow-lg mb-6 transform -rotate-3 group hover:rotate-0 transition-transform duration-300">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Clinician Access</h2>
+            <p class="text-slate-400 mt-2 text-sm font-medium">Securely sign in to your medical workspace</p>
+        </div>
+        
+        <form action="{{ url_for('login_doctor') }}" method="POST" class="space-y-6 relative z-10">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1 mb-2">Username</label>
+                <div class="relative">
+                    <input type="text" name="username" required 
+                           class="block w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-2 focus:ring-blue-100 transition-all placeholder-slate-300" 
+                           placeholder="e.g. dr_smith">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1 mb-2">Password</label>
+                <div class="relative">
+                    <input type="password" name="password" required 
+                           class="block w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-2 focus:ring-blue-100 transition-all placeholder-slate-300"
+                           placeholder="••••••••">
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl shadow-slate-200 hover:bg-blue-600 hover:shadow-blue-100 transition-all transform active:scale-[0.98]">
+                    Authorize Access
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-10 pt-8 border-t border-slate-50 text-center relative z-10">
+            <p class="text-xs text-slate-400 font-medium">
+                New to the platform? 
+                <a href="{{ url_for('register_doctor') }}" class="text-blue-600 font-bold hover:text-blue-700 ml-1">Request Enrollment</a>
+            </p>
+            <div class="mt-4">
+                <a href="{{ url_for('login_patient') }}" class="inline-flex items-center text-[10px] font-bold text-slate-300 uppercase tracking-widest hover:text-slate-500 transition-colors">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg>
+                    Switch to Patient Portal
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <p class="text-center text-[10px] text-slate-300 mt-8 font-medium">
+        Encrypted Session &middot; HIPAA Compliant Storage &middot; MedConnect &copy; 2026
+    </p>
+</div>
+{% endblock %}
