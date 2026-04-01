@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -10,6 +10,11 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET")
+
+print(f"DEBUG: DATABASE is {os.getenv('DATABASE')}")
+print(f"DEBUG: USER is {os.getenv('USER')}")
+# Don't print the actual password, just check if it exists
+print(f"DEBUG: PASSWORD {os.getenv('PASSWORD')} LOADED: {os.getenv('PASSWORD') is not None}")
 
 def get_db_connection():
     return psycopg2.connect(
@@ -130,6 +135,14 @@ def login_doctor():
             flash("Invalid doctor credentials.")
 
     return render_template('login_doctor.html')
+
+@app.route('/logout')
+def logout():
+ 
+    session.clear()
+    flash("You have been successfully logged out. Stay healthy!", "info")
+    return redirect(url_for('login_patient'))
+
 
 @app.route('/patient/my-appointments')
 def patient_appointments():
@@ -337,24 +350,32 @@ def doctor_profile():
 
 @app.route('/doctor/patients')
 def manage_patients():
-    if session.get('role') != 'doctor':
-        return redirect(url_for('login_doctor'))
-    
-    doctor_id = session.get('user_id')
+    if 'user_id' not in session or session.get('role') != 'doctor':
+        return redirect(url_for('index'))
+
+    doctor_id = session['user_id']
     conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
-    # Get all unique patients who have ever booked this doctor
+    # Ensure you are using RealDictCursor so p.latest_appointment_id works in Jinja
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # This query joins patients with appointments to get the ID needed for the chat link
     cur.execute("""
-        SELECT DISTINCT p.id, p.name, p.email, p.contact_no, p.gender, p.blood_group
+        SELECT 
+            p.id, 
+            p.name, 
+            p.blood_group, 
+            p.contact_no, 
+            MAX(a.id) as latest_appointment_id
         FROM patients p
         JOIN appointments a ON p.id = a.patient_id
         WHERE a.doctor_id = %s
+        GROUP BY p.id, p.name, p.blood_group, p.contact_no
     """, (doctor_id,))
     
     patients = cur.fetchall()
     cur.close()
     conn.close()
+    
     return render_template('manage_patients.html', patients=patients)
 
 @app.route('/doctor/patient/<int:patient_id>')
@@ -427,10 +448,7 @@ def patient_profile():
     conn.close()
     return render_template('patient_profile.html', patient=patient)
 
-@app.route('/logout')
-def logout():
 
-    session.clear()
-    flash("You have been successfully logged out. Stay healthy!", "info")
-    
-    return redirect(url_for('index'))
+
+if __name__ == "__main__":
+    app.run(debug=True)

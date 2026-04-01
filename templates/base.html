@@ -22,24 +22,27 @@
             </a>
             
             <div class="flex items-center space-x-2">
-                {% if session.get('user_id') %}
-                    <div class="hidden md:flex bg-slate-100 p-1 rounded-xl mr-4">
-                        {% if session.get('role') == 'patient' %}
-                            <a href="{{ url_for('patient_dashboard') }}" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition">Find Care</a>
-                            <a href="{{ url_for('patient_history') }}" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition">Health Folder</a>
-                            <a href="{{ url_for('patient_profile') }}" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition">My Profile</a>
-                        {% elif session.get('role') == 'doctor' %}
-                            <a href="{{ url_for('doctor_dashboard') }}" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition">Worklist</a>
-                            <a href="{{ url_for('manage_patients') }}" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition">Patient Records</a>
-                            <a href="{{ url_for('doctor_profile') }}" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition">Settings</a>
-                        {% endif %}
-                    </div>
-                    <a href="/logout" class="bg-slate-900 text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-slate-800 transition">Logout</a>
-                {% else %}
-                    <a href="/login/patient" class="text-slate-600 hover:text-blue-600 px-4 text-sm font-medium">Patient Portal</a>
-                    <a href="/login/doctor" class="bg-blue-50 text-blue-600 px-5 py-2 rounded-xl text-sm font-semibold hover:bg-blue-100 transition border border-blue-100">Clinician Login</a>
-                {% endif %}
-            </div>
+    {% if session.get('user_id') %}
+        <div class="hidden md:flex bg-slate-100 p-1 rounded-xl mr-4">
+            {% if session.get('role') == 'patient' %}
+                <a href="{{ url_for('patient_dashboard') }}" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition">Find Care</a>
+                <a href="{{ url_for('patient_history') }}" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition">Health Folder</a>
+                <a href="{{ url_for('patient_profile') }}" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition">My Profile</a>
+            {% elif session.get('role') == 'doctor' %}
+                <a href="{{ url_for('doctor_dashboard') }}" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition">Worklist</a>
+                <a href="{{ url_for('manage_patients') }}" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition">Patient Records</a>
+                <a href="{{ url_for('doctor_profile') }}" class="px-4 py-2 rounded-lg text-sm font-medium hover:bg-white hover:shadow-sm transition">Settings</a>
+            {% endif %}
+        </div>
+        
+        <a href="{{ url_for('logout') }}" class="bg-red-50 text-red-600 px-5 py-2 rounded-xl text-sm font-semibold hover:bg-red-100 transition border border-red-100">
+            Logout
+        </a>
+    {% else %}
+        <a href="{{ url_for('login_patient') }}" class="text-slate-600 hover:text-blue-600 px-4 text-sm font-medium">Patient Portal</a>
+        <a href="{{ url_for('login_doctor') }}" class="bg-blue-50 text-blue-600 px-5 py-2 rounded-xl text-sm font-semibold hover:bg-blue-100 transition border border-blue-100">Clinician Login</a>
+    {% endif %}
+</div>
         </div>
     </nav>
     

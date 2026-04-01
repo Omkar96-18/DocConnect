@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-slate-900 p-6 text-white flex justify-between items-center">
+        <div>
+            <h2 class="text-xl font-bold">Chat with 
+                {% if role == 'patient' %} Dr. {{ appointment.doctor_name }} {% else %} {{ appointment.patient_name }} {% endif %}
+            </h2>
+            <p class="text-xs text-slate-400">Appointment ID: #{{ appointment.id }}</p>
+        </div>
+        <a href="javascript:history.back()" class="text-sm bg-slate-800 px-3 py-1 rounded-lg">Back</a>
+    </div>
+
+    <div class="h-[500px] overflow-y-auto p-6 space-y-4 bg-slate-50" id="chat-window">
+        {% for msg in messages %}
+            <div class="flex {% if msg.sender_id == user_id and msg.sender_role == role %} justify-end {% endif %}">
+                <div class="max-w-[80%] p-4 rounded-2xl text-sm 
+                    {% if msg.sender_id == user_id and msg.sender_role == role %}
+                        bg-blue-600 text-white rounded-tr-none
+                    {% else %}
+                        bg-white border border-slate-200 text-slate-800 rounded-tl-none
+                    {% endif %}">
+                    {{ msg.message_text }}
+                    <p class="text-[10px] mt-1 opacity-70">{{ msg.created_at.strftime('%H:%M') }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <form method="POST" class="p-4 bg-white border-t border-slate-100 flex gap-2">
+        <input type="text" name="message" placeholder="Type your message..." required
+               class="flex-1 bg-slate-100 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+        <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+            Send
+        </button>
+    </form>
+</div>
+
+<script>
+const chatWindow = document.getElementById('chat-window');
+const appointmentId = {{ appointment.id }};
+const currentUserId = {{ user_id }};
+const currentRole = "{{ role }}";
+
+function fetchMessages() {
+    fetch(`/api/messages/${appointmentId}`)
+        .then(response => response.json())
+        .then(messages => {
+            chatWindow.innerHTML = ''; // Clear and rebuild
+            messages.forEach(msg => {
+                const isMe = (msg.sender_id == currentUserId && msg.sender_role == currentRole);
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
+                
+                messageDiv.innerHTML = `
+                    <div class="max-w-[80%] p-4 rounded-2xl text-sm ${isMe ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'}">
+                        ${msg.message_text}
+                        <p class="text-[10px] mt-1 opacity-70">${msg.time}</p>
+                    </div>
+                `;
+                chatWindow.appendChild(messageDiv);
+            });
+            // Auto-scroll to bottom
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        });
+}
+
+// Check for new messages every 3 seconds
+setInterval(fetchMessages, 3000);
+
+// Initial load
+fetchMessages();
+</script>
+{% endblock %}
