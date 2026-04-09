@@ -84,19 +84,30 @@
                 </div>
                 <p class="text-xs text-slate-400 ml-6 italic">{{ doctor.center_location }}</p>
             </div>
+<form action="{{ url_for('request_appointment') }}" method="POST" class="space-y-3">
+    <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
+    
+    <div class="flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1">
+            <input type="datetime-local" name="appointment_time" required 
+                   class="w-full text-xs font-bold bg-white border-2 border-slate-100 rounded-2xl p-3 focus:border-blue-200 focus:ring-0 transition-all">
+        </div>
+        
+        <div class="flex gap-2">
+            <a href="{{ url_for('chat', contact_id=doctor.id) }}" 
+               class="bg-slate-100 text-slate-600 p-3 rounded-2xl hover:bg-blue-50 hover:text-blue-600 transition-all flex items-center justify-center border border-transparent hover:border-blue-100"
+               title="Message Dr. {{ doctor.name }}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                </svg>
+            </a>
 
-            <form action="{{ url_for('request_appointment') }}" method="POST" class="space-y-3">
-                <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
-                <div class="flex gap-3">
-                    <div class="relative flex-1">
-                        <input type="datetime-local" name="appointment_time" required 
-                               class="w-full text-xs font-bold bg-white border-2 border-slate-100 rounded-2xl p-3 focus:border-blue-200 focus:ring-0 transition-all">
-                    </div>
-                    <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-2xl text-xs font-bold hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all transform active:scale-95">
-                        Book Now
-                    </button>
-                </div>
-            </form>
+            <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-2xl text-xs font-bold hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all transform active:scale-95 whitespace-nowrap">
+                Consult Now
+            </button>
+        </div>
+    </div>
+</form>
         </div>
         {% endfor %}
     </div>

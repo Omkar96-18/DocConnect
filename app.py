@@ -58,7 +58,7 @@ def register_patient():
             conn.close()
     return render_template('register_patient.html')
 
-@app.route('/login/patient', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def login_patient():
     if request.method == 'POST':
         username = request.form['username']
@@ -175,6 +175,12 @@ def doctor_dashboard():
     doctor_id = session.get('user_id')
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    cur.execute("SELECT COUNT(*) FROM appointments WHERE doctor_id = %s AND status = 'approved'", (doctor_id,))
+    total_patients = cur.fetchone()['count']
+    
+    cur.execute("SELECT COUNT(*) FROM messages WHERE receiver_id = %s AND sender_role = 'patient'", (doctor_id,))
+    total_messages = cur.fetchone()['count']
     
     cur.execute("""
     UPDATE appointments 
@@ -191,11 +197,15 @@ def doctor_dashboard():
         WHERE a.doctor_id = %s
         ORDER BY a.appointment_date ASC
     """, (doctor_id,))
+
     
     appointments = cur.fetchall()
     cur.close()
     conn.close()
-    return render_template('doctor_dashboard.html', appointments=appointments)
+    return render_template('doctor_dashboard.html', 
+                           appointments=appointments, 
+                           total_patients=total_patients,
+                           total_messages=total_messages)
 
 @app.route('/appointment/update/<int:appointment_id>/<string:status>', methods=['POST'])
 def update_appointment_status(appointment_id, status):
@@ -371,6 +381,13 @@ def manage_patients():
         WHERE a.doctor_id = %s
         GROUP BY p.id, p.name, p.blood_group, p.contact_no
     """, (doctor_id,))
+
+    # cur.execute("""
+    # SELECT p.id, p.name, p.contact_no, p.blood_group, a.doctor_notes 
+    # FROM patients p 
+    # LEFT JOIN appointments a ON p.id = a.patient_id 
+    # WHERE a.doctor_id = %s
+    # """, (doctor_id,))
     
     patients = cur.fetchall()
     cur.close()
@@ -447,6 +464,90 @@ def patient_profile():
     cur.close()
     conn.close()
     return render_template('patient_profile.html', patient=patient)
+
+@app.route('/messages')
+def messages_list():
+    if not session.get('user_id'):
+        return redirect(url_for('login_patient'))
+    
+    user_id = session['user_id']
+    role = session['role']
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Query to find all unique contacts this user has messaged or received from
+    if role == 'patient':
+        # Find doctors this patient has messaged
+        query = """
+            SELECT DISTINCT d.id, d.name, d.specialization as subtext
+            FROM doctors d
+            JOIN messages m ON (m.sender_id = d.id AND m.receiver_id = %s AND m.sender_role = 'doctor')
+                            OR (m.receiver_id = d.id AND m.sender_id = %s AND m.sender_role = 'patient')
+        """
+    else:
+        # Find patients this doctor has messaged
+        query = """
+            SELECT DISTINCT p.id, p.name, p.blood_group as subtext
+            FROM patients p
+            JOIN messages m ON (m.sender_id = p.id AND m.receiver_id = %s AND m.sender_role = 'patient')
+                            OR (m.receiver_id = p.id AND m.sender_id = %s AND m.sender_role = 'doctor')
+        """
+    
+    cur.execute(query, (user_id, user_id))
+    contacts = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('messages_list.html', contacts=contacts)
+
+@app.route('/chat/<int:contact_id>')
+def chat(contact_id):
+    if not session.get('user_id'):
+        return redirect(url_for('login_patient'))
+
+    user_id = session['user_id']
+    role = session['role']
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Get the name of the person you are chatting with
+    if role == 'patient':
+        cur.execute("SELECT name FROM doctors WHERE id = %s", (contact_id,))
+    else:
+        cur.execute("SELECT name FROM patients WHERE id = %s", (contact_id,))
+    recipient = cur.fetchone()
+
+    # Fetch message history
+    cur.execute("""
+        SELECT * FROM messages 
+        WHERE (sender_id = %s AND receiver_id = %s AND sender_role = %s)
+           OR (sender_id = %s AND receiver_id = %s AND sender_role != %s)
+        ORDER BY created_at ASC
+    """, (user_id, contact_id, role, contact_id, user_id, role))
+    
+    chat_history = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('chat.html', history=chat_history, recipient=recipient, contact_id=contact_id)
+
+@app.route('/send_message/<int:receiver_id>', methods=['POST'])
+def send_message(receiver_id):
+    sender_id = session.get('user_id')
+    role = session.get('role')
+    text = request.form.get('message_text')
+
+    if not text:
+        return redirect(url_for('chat', contact_id=receiver_id))
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO messages (sender_id, receiver_id, sender_role, message_text)
+        VALUES (%s, %s, %s, %s)
+    """, (sender_id, receiver_id, role, text))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return redirect(url_for('chat', contact_id=receiver_id))
 
 
 
