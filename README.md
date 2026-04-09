@@ -72,6 +72,24 @@ CREATE TABLE appointments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
+
+v. Messages 
+```bash
+CREATE TABLE public.messages (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER NOT NULL,
+    receiver_id INTEGER NOT NULL,
+    sender_role VARCHAR(10) NOT NULL,
+    appointment_id INTEGER,
+    message_text TEXT NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Foreign Key Constraint
+    CONSTRAINT messages_appointment_id_fkey 
+        FOREIGN KEY (appointment_id) 
+        REFERENCES appointments(id)
+);
+```
 🚀 How to Run the Project
 1. Clone & Environment
 ```bash
