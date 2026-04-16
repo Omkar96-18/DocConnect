@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -41,12 +41,13 @@ def register_patient():
         username = request.form['username']
         password = generate_password_hash(request.form['password'])
         contact = request.form['contact']
+        blood_grp = request.form['blood_group']
         
         conn = get_db_connection()
         cur = conn.cursor()
         try:
-            cur.execute('INSERT INTO patients (name, email, username, password_hash, contact_no) VALUES (%s, %s, %s, %s, %s)',
-                        (name, email, username, password, contact))
+            cur.execute('INSERT INTO patients (name, email, username, password_hash, contact_no, blood_group) VALUES (%s, %s, %s, %s, %s, %s)',
+                        (name, email, username, password, contact, blood_grp))
             conn.commit()
             flash("Registration successful! Please login.")
             return redirect(url_for('login_patient'))
