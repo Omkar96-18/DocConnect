@@ -1,105 +1,175 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-    <nav class="mb-8">
-        <a href="{{ url_for('manage_patients') }}" class="group inline-flex items-center text-sm font-bold text-slate-400 hover:text-blue-600 transition-colors">
-            <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-            Directory
+
+<style>
+    .bio-card-gradient {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    }
+    .timeline-glow {
+        position: relative;
+    }
+    .timeline-glow::before {
+        content: '';
+        position: absolute;
+        left: 6px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, #3b82f6 0%, #e2e8f0 100%);
+    }
+    .glass-pill {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+</style>
+
+<div class="max-w-7xl mx-auto px-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 mb-20">
+    
+    <nav class="flex justify-between items-center mb-10">
+        <a href="{{ url_for('manage_patients') }}" class="group inline-flex items-center gap-2 text-xs font-black text-slate-400 hover:text-blue-600 transition-all uppercase tracking-widest">
+            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
+            </div>
+            Registry Directory
         </a>
+        
+        <div class="flex gap-3">
+            <button onclick="window.print()" class="glass-pill px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-white hover:shadow-md transition-all flex items-center gap-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" stroke-width="2.5"></path></svg>
+                Export Chart
+            </button>
+        </div>
     </nav>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <div class="lg:col-span-1 space-y-6">
-            <div class="bg-white rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.02)] border border-slate-100 p-8 text-center relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-white rounded-[3rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.05)] border border-slate-100/80 p-10 text-center relative overflow-hidden group">
+                <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
                 
-                <div class="w-24 h-24 bg-slate-50 rounded-[2rem] mx-auto flex items-center justify-center text-3xl font-bold text-blue-600 mb-4 border border-blue-50">
-                    {{ patient.name[0] }}
+                <div class="relative inline-block mb-6">
+                    <div class="w-28 h-28 bg-blue-50 rounded-[2.5rem] flex items-center justify-center text-4xl font-black text-blue-600 border-2 border-white shadow-xl transition-transform group-hover:rotate-3">
+                        {{ patient.name[0] }}
+                    </div>
+                    <div class="absolute -bottom-2 -right-2 bg-emerald-500 border-4 border-white w-8 h-8 rounded-full flex items-center justify-center text-white" title="Verified Record">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"></path></svg>
+                    </div>
                 </div>
                 
-                <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ patient.name }}</h2>
-                <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                    {{ patient.gender }} &bull; DOB: {{ patient.date_of_birth }}
-                </p>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight">{{ patient.name }}</h2>
+                <div class="flex flex-wrap justify-center gap-2 mt-3">
+                    <span class="bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{{ patient.gender }}</span>
+                    <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">DOB: {{ patient.date_of_birth }}</span>
+                </div>
                 
-                <div class="mt-6 inline-flex items-center bg-rose-50 text-rose-600 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-tighter border border-rose-100">
-                    <svg class="w-3 h-3 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1.323l.395.072 4 4a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L5 10.586V3a1 1 0 011-1h4z"/></svg>
-                    Blood Group: {{ patient.blood_group or 'N/A' }}
+                <div class="mt-8 p-4 bg-rose-50 rounded-2xl border border-rose-100">
+                    <p class="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Biological Identity</p>
+                    <p class="text-xl font-black text-rose-600">Blood Group: {{ patient.blood_group or 'N/A' }}</p>
                 </div>
             </div>
 
-            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8">
-                <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">Patient Contact</h3>
-                <div class="space-y-5">
-                    <div class="flex items-start gap-4">
-                        <div class="p-2 bg-slate-50 rounded-lg text-slate-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg></div>
-                        <p class="text-sm font-semibold text-slate-700">{{ patient.contact_no }}</p>
+            <div class="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0012 3a9.99 9.99 0 015.566 1.685M12 11l.011.011m0 0L12 11zm0 0V3m0 8l8.532-4.661M12 11l-8.532-4.661"></path></svg>
+                    Contact Registry
+                </h3>
+                <div class="space-y-6">
+                    <div class="group flex items-center gap-5 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
+                        <div class="w-10 h-10 bg-white shadow-sm border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" stroke-width="2"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tele-Comms</p>
+                            <p class="text-sm font-bold text-slate-700">{{ patient.contact_no }}</p>
+                        </div>
                     </div>
-                    <div class="flex items-start gap-4">
-                        <div class="p-2 bg-slate-50 rounded-lg text-slate-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg></div>
-                        <p class="text-sm font-semibold text-slate-700">{{ patient.email }}</p>
+                    <div class="group flex items-center gap-5 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
+                        <div class="w-10 h-10 bg-white shadow-sm border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-blue-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke-width="2"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Email Node</p>
+                            <p class="text-sm font-bold text-slate-700 truncate w-40">{{ patient.email }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-8 space-y-8">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-rose-50/50 border border-rose-100 rounded-[2rem] p-8">
-                    <h3 class="text-rose-800 font-bold mb-4 flex items-center text-sm">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        Critical Allergies
-                    </h3>
-                    <p class="text-sm text-rose-900/80 leading-relaxed font-medium">
-                        {{ patient.allergies or 'No known contraindications reported.' }}
-                    </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-rose-50/30 border border-rose-100 rounded-[2.5rem] p-10 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-8 text-rose-100 transition-transform group-hover:scale-110">
+                        <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                    </div>
+                    <div class="relative z-10">
+                        <h3 class="text-rose-900 font-black mb-4 flex items-center gap-2 text-base uppercase tracking-widest">
+                            Critical Allergies
+                        </h3>
+                        <p class="text-sm text-rose-800/80 leading-relaxed font-bold">
+                            {{ patient.allergies or 'No known clinical contraindications or allergic responses reported in this session.' }}
+                        </p>
+                    </div>
                 </div>
 
-                <div class="bg-blue-50/50 border border-blue-100 rounded-[2rem] p-8">
-                    <h3 class="text-blue-800 font-bold mb-4 flex items-center text-sm">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        Clinical History
-                    </h3>
-                    <p class="text-sm text-blue-900/80 leading-relaxed font-medium">
-                        {{ patient.medical_history or 'No pre-existing records found.' }}
-                    </p>
+                <div class="bg-blue-50/30 border border-blue-100 rounded-[2.5rem] p-10 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-8 text-blue-100 transition-transform group-hover:scale-110">
+                        <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"></path><path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"></path></svg>
+                    </div>
+                    <div class="relative z-10">
+                        <h3 class="text-blue-900 font-black mb-4 flex items-center gap-2 text-base uppercase tracking-widest">
+                            Medical History
+                        </h3>
+                        <p class="text-sm text-blue-800/80 leading-relaxed font-bold">
+                            {{ patient.medical_history or 'Standard baseline. No pre-existing clinical pathologies found in historical data.' }}
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
-                    <h3 class="font-bold text-slate-700">Appointment Timeline</h3>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase bg-white border border-slate-100 px-3 py-1 rounded-full">
-                        {{ history|length }} Total Visits
+            <div class="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-slate-100 overflow-hidden">
+                <div class="px-10 py-8 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-black text-slate-800 text-lg">Clinical Timeline</h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Full Historical Audit</p>
+                    </div>
+                    <span class="bg-white border border-slate-200 text-slate-500 px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm">
+                        {{ history|length }} Total Sessions
                     </span>
                 </div>
                 
-                <div class="p-8">
+                <div class="p-10">
                     {% if history %}
-                        <div class="space-y-8 relative before:absolute before:inset-0 before:ml-1.5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-slate-100 before:via-slate-100 before:to-transparent">
+                        <div class="timeline-glow space-y-10">
                             {% for appt in history %}
-                            <div class="relative flex items-center justify-between group">
-                                <div class="flex items-center">
-                                    <div class="absolute left-0 w-3 h-3 bg-white border-2 border-blue-600 rounded-full group-hover:scale-150 transition-transform"></div>
-                                    <div class="pl-8">
-                                        <p class="text-sm font-bold text-slate-800">{{ appt.appointment_date.strftime('%d %B %Y') }}</p>
-                                        <p class="text-xs text-slate-400 font-medium">Dr. {{ appt.doctor_name }} &middot; Status: {{ appt.status|capitalize }}</p>
+                            <div class="relative flex flex-col md:flex-row md:items-center justify-between group pl-10 md:pl-0">
+                                <div class="absolute left-0 top-1.5 md:hidden w-3.5 h-3.5 bg-blue-600 rounded-full border-4 border-white shadow-sm z-10"></div>
+                                
+                                <div class="flex items-center gap-6">
+                                    <div class="hidden md:block w-3.5 h-3.5 bg-white border-4 border-blue-600 rounded-full shadow-sm z-10 group-hover:scale-125 transition-transform"></div>
+                                    
+                                    <div>
+                                        <div class="flex items-center gap-3">
+                                            <p class="text-base font-black text-slate-900">{{ appt.appointment_date.strftime('%d %B, %Y') }}</p>
+                                            <span class="px-2 py-0.5 bg-slate-100 text-[9px] font-black text-slate-500 rounded uppercase tracking-tighter">
+                                                {{ appt.status }}
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-slate-400 font-bold mt-1 uppercase tracking-widest">Attending:  {{ appt.doctor_name }}</p>
                                     </div>
                                 </div>
-                                <button class="opacity-0 group-hover:opacity-100 transition-opacity bg-slate-50 text-[10px] font-bold text-slate-500 hover:text-blue-600 px-4 py-2 rounded-xl uppercase">
-                                    View Note
-                                </button>
+                                
                             </div>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <div class="text-center py-12">
-                            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-8 h-8 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div class="text-center py-16">
+                            <div class="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                                <svg class="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2"></path></svg>
                             </div>
-                            <p class="text-slate-400 italic text-sm">Patient has no registered visit history.</p>
+                            <p class="text-slate-400 font-bold uppercase tracking-widest text-xs">Diagnostic timeline is currently empty</p>
                         </div>
                     {% endif %}
                 </div>

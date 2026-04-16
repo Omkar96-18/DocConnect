@@ -1,110 +1,134 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 px-4">
+<div class="max-w-6xl mx-auto px-6 animate-in fade-in slide-in-from-bottom-12 duration-1000 mt-12 mb-24">
     
-    <div class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
-        <div>
-            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Your Schedule</h2>
-            <p class="text-slate-500 text-sm mt-1 font-medium">Manage your consultations and medical visits.</p>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
+        <div class="space-y-2">
+            <div class="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-blue-100">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                Patient Itinerary
+            </div>
+            <h2 class="text-5xl font-black text-slate-900 tracking-tight">Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Health Schedule</span></h2>
+            <p class="text-slate-500 text-lg font-medium">Coordinate your clinical sessions and expert consultations.</p>
         </div>
+        
         <a href="{{ url_for('patient_dashboard') }}" 
-           class="group flex items-center bg-slate-900 text-white px-6 py-3.5 rounded-2xl font-bold shadow-xl shadow-slate-200 hover:bg-blue-600 hover:shadow-blue-100 transition-all transform hover:-translate-y-1">
-            <svg class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            Book New Session
+           class="group flex items-center bg-slate-900 text-white px-8 py-4 rounded-[2rem] font-bold shadow-[0_20px_40px_rgba(15,23,42,0.2)] hover:bg-blue-600 transition-all transform hover:-translate-y-1 active:scale-95">
+            <svg class="w-5 h-5 mr-3 transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+            Request New Session
         </a>
     </div>
 
-    <div class="mb-16">
-        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center">
-            <span class="w-8 h-1 bg-blue-600 rounded-full mr-3"></span>
-            Priority Focus (Active)
-        </h3>
+    <div class="mb-20">
+        <div class="flex items-center gap-4 mb-10">
+            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">Upcoming Encounters</h3>
+            <div class="h-px flex-1 bg-gradient-to-r from-slate-100 to-transparent"></div>
+        </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {% for appt in appointments if appt.status in ['pending', 'approved'] and appt.appointment_date >= now %}
-            <div class="bg-white rounded-[2.5rem] p-8 shadow-[0_10px_40px_rgba(0,0,0,0.03)] border border-slate-100 hover:border-blue-100 transition-all group relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-6">
-                    <span class="flex h-3 w-3">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full {% if appt.status == 'approved' %}bg-emerald-400{% else %}bg-amber-400{% endif %} opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 {% if appt.status == 'approved' %}bg-emerald-500{% else %}bg-amber-500{% endif %}"></span>
-                    </span>
+            <div class="bg-white rounded-[3.5rem] p-10 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.04)] border border-slate-100 hover:border-blue-200 transition-all group relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-10">
+                    <div class="flex items-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-100 shadow-sm">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full {% if appt.status == 'approved' %}bg-emerald-400{% else %}bg-amber-400{% endif %} opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 {% if appt.status == 'approved' %}bg-emerald-500{% else %}bg-amber-500{% endif %}"></span>
+                        </span>
+                        <span class="text-[10px] font-black uppercase tracking-widest {% if appt.status == 'approved' %}text-emerald-600{% else %}text-amber-600{% endif %}">
+                            {{ appt.status }}
+                        </span>
+                    </div>
                 </div>
 
-                <div class="flex justify-between items-start mb-6">
-                    <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-blue-600 font-bold border border-slate-100 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                            {{ appt.doctor_name[0] }}
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ appt.status }}</p>
-                            <h4 class="text-xl font-bold text-slate-800">Dr. {{ appt.doctor_name }}</h4>
-                        </div>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-10">
+                    <div class="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-2xl font-black text-blue-600 border border-slate-100 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 group-hover:rotate-3">
+                        {{ appt.doctor_name[0] }}
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-[11px] font-black text-blue-600/60 uppercase tracking-widest">Attending Clinician</p>
+                        <h4 class="text-2xl font-black text-slate-900 leading-tight"> {{ appt.doctor_name }}</h4>
+                        <p class="text-xs font-bold text-slate-400">{{ appt.center_name }}</p>
                     </div>
                 </div>
                 
-                <div class="flex items-center gap-6 mb-6">
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium">Date</p>
-                        <p class="text-sm font-bold text-slate-800">{{ appt.appointment_date.strftime('%d %b %Y') }}</p>
+                <div class="grid grid-cols-2 gap-4 bg-slate-50/50 rounded-3xl p-6 border border-slate-100/50">
+                    <div class="space-y-1">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Calendar Date</p>
+                        <p class="text-base font-black text-slate-800">{{ appt.appointment_date.strftime('%A, %b %d') }}</p>
                     </div>
-                    <div class="w-px h-8 bg-slate-100"></div>
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium">Time</p>
-                        <p class="text-sm font-bold text-slate-800">{{ appt.appointment_date.strftime('%I:%M %p') }}</p>
+                    <div class="space-y-1 border-l border-slate-200 pl-6">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sync Time</p>
+                        <p class="text-base font-black text-slate-800">{{ appt.appointment_date.strftime('%I:%M %p') }}</p>
                     </div>
                 </div>
 
-                <div class="pt-6 border-t border-slate-50 flex items-center justify-between">
-                    <div class="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
-                        {{ appt.center_name }}
+                <div class="mt-8 flex justify-between items-center px-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-slate-200"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Consultation Node 0{{ loop.index }}</span>
                     </div>
+                    <a href="{{ url_for('messages_list') }}" class="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-indigo-600 transition-colors">Contact Office</a>
                 </div>
             </div>
             {% else %}
-            <div class="col-span-2 bg-slate-50/50 rounded-[2rem] p-12 text-center border border-dashed border-slate-200">
-                <p class="text-slate-400 font-medium italic">No upcoming sessions scheduled.</p>
+            <div class="col-span-full bg-slate-50/50 rounded-[3rem] p-20 text-center border-2 border-dashed border-slate-200/60 transition-all hover:bg-white hover:border-blue-100 group">
+                <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                    <svg class="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2"></path></svg>
+                </div>
+                <p class="text-slate-400 font-bold text-lg">No clinical encounters on the horizon.</p>
+                <p class="text-slate-300 text-sm mt-2">Your health timeline is currently clear.</p>
             </div>
             {% endfor %}
         </div>
     </div>
 
     <div>
-        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center">
-            <span class="w-8 h-1 bg-slate-200 rounded-full mr-3"></span>
-            Visit History
-        </h3>
+        <div class="flex items-center gap-4 mb-10">
+            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">Clinical Archive</h3>
+            <div class="h-px flex-1 bg-gradient-to-r from-slate-100 to-transparent"></div>
+        </div>
         
-        <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-            <table class="min-w-full divide-y divide-slate-50">
-                <thead class="bg-slate-50/50">
-                    <tr>
-                        <th class="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Medical Provider</th>
-                        <th class="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Completed On</th>
-                        <th class="px-8 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Session Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50 bg-white">
-                    {% for appt in appointments if appt.status in ['rejected', 'expired'] or appt.appointment_date < now %}
-                    <tr class="group hover:bg-slate-50/30 transition-all">
-                        <td class="px-8 py-6">
-                            <div class="text-sm font-bold text-slate-800">Dr. {{ appt.doctor_name }}</div>
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{{ appt.specialization }}</div>
-                        </td>
-                        <td class="px-8 py-6 text-sm text-slate-500 font-medium">
-                            {{ appt.appointment_date.strftime('%b %d, %Y') }}
-                        </td>
-                        <td class="px-8 py-6 text-right">
-                            <span class="px-3 py-1 text-[10px] font-black uppercase tracking-tighter rounded-lg
-                                {% if appt.status == 'rejected' %} bg-rose-50 text-rose-600 border border-rose-100
-                                {% elif appt.status == 'expired' %} bg-slate-100 text-slate-500
-                                {% else %} bg-blue-50 text-blue-600 border border-blue-100 {% endif %}">
-                                {{ 'Completed' if appt.status == 'approved' and appt.appointment_date < now else appt.status }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="bg-white rounded-[3rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] border border-slate-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-slate-50/50 border-b border-slate-100">
+                        <tr>
+                            <th class="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Medical Authority</th>
+                            <th class="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Bio-Sync Date</th>
+                            <th class="px-10 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Record Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for appt in appointments if appt.status in ['rejected', 'expired'] or appt.appointment_date < now %}
+                        <tr class="group hover:bg-slate-50/40 transition-all duration-300">
+                            <td class="px-10 py-8">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-black group-hover:bg-white group-hover:text-blue-600 transition-all border border-transparent group-hover:border-slate-100">
+                                        {{ appt.doctor_name[0] }}
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-black text-slate-800">{{ appt.doctor_name }}</div>
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{{ appt.specialization }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-10 py-8">
+                                <div class="text-sm font-bold text-slate-600">{{ appt.appointment_date.strftime('%B %d, %Y') }}</div>
+                                <div class="text-[10px] font-medium text-slate-400 italic">Archived Data</div>
+                            </td>
+                            <td class="px-10 py-8 text-right">
+                                <span class="px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-xl border
+                                    {% if appt.status == 'rejected' %} bg-rose-50 text-rose-500 border-rose-100
+                                    {% elif appt.status == 'expired' %} bg-slate-100 text-slate-400 border-slate-200
+                                    {% else %} bg-emerald-50 text-emerald-600 border-emerald-100 {% endif %}">
+                                    {{ 'Finalized' if appt.status == 'approved' and appt.appointment_date < now else appt.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

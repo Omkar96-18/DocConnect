@@ -1,30 +1,121 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="max-w-3xl mx-auto flex flex-col h-[70vh] bg-white rounded-3xl shadow-sm border border-slate-200">
-    <div class="p-4 border-b border-slate-100 flex items-center gap-3">
-        <a href="{{ url_for('messages_list') }}" class="text-slate-400 hover:text-slate-600">←</a>
-        <h3 class="font-bold text-slate-800">{{ recipient.name }}</h3>
-    </div>
 
-    <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50">
-        {% for msg in history %}
-        <div class="flex {% if msg.sender_id == session['user_id'] and msg.sender_role == session['role'] %} justify-end {% endif %}">
-            <div class="max-w-[70%] p-3 rounded-2xl text-sm 
-                {% if msg.sender_id == session['user_id'] and msg.sender_role == session['role'] %}
-                    bg-blue-600 text-white rounded-tr-none
-                {% else %}
-                    bg-white text-slate-700 border border-slate-200 rounded-tl-none
-                {% endif %}">
-                {{ msg.message_text }}
-                <div class="text-[10px] mt-1 opacity-70">{{ msg.created_at.strftime('%H:%M') }}</div>
+<style>
+    .chat-canvas {
+        height: calc(100vh - 250px);
+        background: radial-gradient(circle at center, #ffffff 0%, #f8fafc 100%);
+    }
+    
+    /* Hide scrollbar but maintain touch flow */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .message-bubble {
+        max-width: 75%;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Sent: Deep slate with organic radius */
+    .bubble-out {
+        background: #0f172a;
+        color: white;
+        border-radius: 1.5rem 1.5rem 0.25rem 1.5rem;
+        box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.1);
+    }
+
+    /* Received: Crisp white with soft border */
+    .bubble-in {
+        background: white;
+        color: #1e293b;
+        border-radius: 1.5rem 1.5rem 1.5rem 0.25rem;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+
+    .input-bar-glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+</style>
+
+<div class="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000 mt-6 px-4">
+    
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-5">
+            <a href="{{ url_for('messages_list') }}" class="group w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm">
+                <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+            </a>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-lg shadow-blue-100">
+                        {{ recipient.name[0] }}
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-slate-900 leading-tight">{{ recipient.name }}</h3>
+                    <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                        Active Bio-Link
+                    </p>
+                </div>
             </div>
         </div>
-        {% endfor %}
+
+        <div class="hidden md:flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm">
+            <div class="p-1.5 bg-slate-50 rounded-lg text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-width="2.5"></path></svg>
+            </div>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">TLS Encryption Active</span>
+        </div>
     </div>
 
-    <form action="{{ url_for('send_message', receiver_id=contact_id) }}" method="POST" class="p-4 border-t border-slate-100 flex gap-2">
-        <input type="text" name="message_text" placeholder="Type your message..." class="flex-1 bg-slate-100 border-none rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-semibold hover:bg-blue-700 transition">Send</button>
-    </form>
+    <div class="bg-white/40 rounded-[3rem] border border-slate-100 p-2 shadow-inner">
+        <div id="chat-window" class="chat-canvas no-scrollbar overflow-y-auto rounded-[2.5rem] p-8 space-y-8">
+            {% for msg in history %}
+                {% set is_me = (msg.sender_id == session['user_id'] and msg.sender_role == session['role']) %}
+                
+                <div class="flex {{ 'justify-end' if is_me else 'justify-start' }} animate-in fade-in slide-in-from-{{ 'right' if is_me else 'left' }}-4 duration-500">
+                    <div class="message-bubble {{ 'bubble-out' if is_me else 'bubble-in' }} p-5 lg:p-6">
+                        <p class="text-sm font-semibold leading-relaxed">{{ msg.message_text }}</p>
+                        
+                        <div class="mt-3 flex items-center gap-2 {{ 'justify-end text-white/40' if is_me else 'justify-start text-slate-400' }}">
+                            <span class="text-[9px] font-black uppercase tracking-tighter">{{ msg.created_at.strftime('%I:%M %p') }}</span>
+                            {% if is_me %}
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="mt-8 relative z-30">
+        <form action="{{ url_for('send_message', receiver_id=contact_id) }}" method="POST" class="flex items-center gap-4">
+            <div class="relative flex-1 group">
+                <input type="text" name="message_text" required autocomplete="off"
+                       placeholder="Transmit clinical inquiry..." 
+                       class="w-full input-bar-glass rounded-[2rem] py-5 px-8 text-sm font-bold text-slate-800 shadow-2xl shadow-blue-900/5 outline-none focus:ring-4 focus:ring-blue-500/5 transition-all">
+                
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                    <button type="submit" class="w-12 h-12 bg-slate-900 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-all transform hover:scale-105 active:scale-95 shadow-lg">
+                        <svg class="w-5 h-5 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9-2-9-18-9 18 9 2zm0 0v-8"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </form>
+        <p class="text-center mt-4 text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">Authorized Personnel Comms Terminal</p>
+    </div>
 </div>
+
+<script>
+    // Ensure the bio-link stays focused on latest data
+    const win = document.getElementById('chat-window');
+    win.scrollTop = win.scrollHeight;
+</script>
+
 {% endblock %}

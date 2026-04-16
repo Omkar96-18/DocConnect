@@ -1,104 +1,134 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-700">
-    <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
-        <div>
-            <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Patient Directory</h2>
-            <p class="text-slate-500 text-sm mt-1">A unified view of all patients under your care.</p>
+<style>
+    .directory-table tr {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .directory-table tr:hover {
+        background-color: rgba(59, 130, 246, 0.03);
+        transform: scale(1.002);
+        z-index: 10;
+    }
+    .search-focus:focus-within {
+        width: 350px !important;
+        box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1);
+    }
+    .line-clamp-notes {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .group:hover .line-clamp-notes {
+        -webkit-line-clamp: 3;
+    }
+</style>
+
+<div class="max-w-7xl mx-auto px-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 mt-12 mb-20">
+    
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-8">
+        <div class="space-y-1">
+            <div class="inline-flex items-center gap-2 bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-200">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke-width="2.5"></path></svg>
+                Master Directory
+            </div>
+            <h2 class="text-4xl font-black text-slate-900 tracking-tight">Patient <span class="text-blue-600">Registry</span></h2>
+            <p class="text-slate-400 font-medium">Unified management of {{ patients|length }} medical subjects.</p>
         </div>
         
-        <div class="relative w-full md:w-72">
-            <input type="text" id="patientSearch" onkeyup="searchFunction()" placeholder="Filter by name..." 
-                   class="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-11 pr-4 text-sm focus:ring-4 focus:ring-blue-50 focus:border-blue-200 transition-all shadow-sm">
-            <svg class="w-5 h-5 text-slate-400 absolute left-4 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        <div class="relative search-focus transition-all duration-500 w-full lg:w-80">
+            <input type="text" id="patientSearch" onkeyup="searchFunction()" placeholder="Filter by name or ID..." 
+                   class="w-full bg-white border border-slate-200 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/30 transition-all shadow-sm outline-none">
+            <svg class="w-5 h-5 text-slate-300 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
         </div>
     </div>
 
-    <div class="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-        <table class="min-w-full border-collapse" id="patientTable">
-            <thead>
-                <tr class="bg-slate-50/50 border-b border-slate-100">
-                    <th class="px-8 py-5 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identity</th>
-                    <th class="px-8 py-5 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Clinical Info</th>
-                    <th class="px-8 py-5 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Consultation Notes</th>
-                    <th class="px-8 py-5 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Communication</th>
-                    <th class="px-8 py-5 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Management</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-50">
-                {% for p in patients %}
-                <tr class="hover:bg-blue-50/30 transition-colors group">
-                    <td class="px-8 py-6">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 font-bold group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                {{ p.name[0] }}
+    <div class="bg-white rounded-[3rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.03)] border border-slate-100/80 overflow-hidden relative">
+        <div class="overflow-x-auto">
+            <table class="min-w-full border-collapse directory-table overflow-hidden" id="patientTable">
+                <thead>
+                    <tr class="bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Clinical Identity</th>
+                        <th class="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Bio Status</th>
+                        
+                        <th class="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Frequency/Contact</th>
+                        <th class="px-10 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Bio Records</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for p in patients %}
+                    <tr class="group relative">
+                        <td class="px-10 py-7">
+                            <div class="flex items-center gap-5">
+                                <div class="w-12 h-12 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 font-black group-hover:bg-blue-600 group-hover:text-white group-hover:scale-105 transition-all duration-300 shadow-sm">
+                                    {{ p.name[0] }}
+                                </div>
+                                <div>
+                                    <div class="font-extrabold text-slate-900 text-base">{{ p.name }}</div>
+                                    <div class="text-[10px] text-blue-500 font-black uppercase tracking-widest mt-0.5">Subject #{{ p.id }}</div>
+                                </div>
                             </div>
-                            <div>
-                                <div class="font-bold text-slate-800">{{ p.name }}</div>
-                                <div class="text-[11px] text-slate-400 font-medium">ID: #00{{ p.id }}</div>
+                        </td>
+                        
+                        <td class="px-8 py-7">
+                            {% if p.blood_group %}
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-black uppercase tracking-widest">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                                {{ p.blood_group }}
                             </div>
-                        </div>
-                    </td>
-                    <td class="px-8 py-6">
-                        {% if p.blood_group %}
-                        <span class="inline-flex items-center px-3 py-1 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 text-xs font-bold">
-                            {{ p.blood_group }}
-                        </span>
-                        {% else %}
-                        <span class="text-slate-300 text-xs italic">Not set</span>
-                        {% endif %}
-                    </td>
-
-                    <td class="px-8 py-6">
-                        <div class="max-w-[200px]">
-                            {% if p.doctor_notes %}
-                            <p class="text-[11px] text-slate-600 leading-relaxed italic line-clamp-2 group-hover:line-clamp-none transition-all">
-                                "{{ p.doctor_notes }}"
-                            </p>
                             {% else %}
-                            <span class="text-slate-300 text-[11px] italic">No notes added</span>
+                            <span class="text-slate-300 text-[10px] font-bold uppercase tracking-widest italic">Not Synchronized</span>
                             {% endif %}
-                        </div>
-                    </td>
+                        </td>
 
-                    <td class="px-8 py-6 text-sm text-slate-600 font-medium">
-                        {{ p.contact_no }}
-                    </td>
-                    <td class="px-8 py-6 text-right">
-                        <a href="{{ url_for('patient_details', patient_id=p.id) }}" 
-                           class="inline-flex items-center px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-blue-600 transition-all shadow-md">
-                            Check Files
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        
+
+                        <td class="px-8 py-7">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold text-slate-700">{{ p.contact_no }}</span>
+                                <span class="text-[10px] text-slate-400 font-bold">Secure Line</span>
+                            </div>
+                        </td>
+
+                        <td class="px-10 py-7 text-right">
+                            <a href="{{ url_for('patient_details', patient_id=p.id) }}" 
+                               class="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-lg shadow-slate-200 active:scale-95">
+                                Review Data
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <script>
-// Simple search functionality
+// Logic: Advanced dynamic name/ID filter
 function searchFunction() {
-  var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("patientSearch");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("patientTable");
-  tr = table.getElementsByTagName("tr");
-  for (i = 1; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[0];
-    if (td) {
-      txtValue = td.textContent || td.innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        tr[i].style.display = "";
-      } else {
-        tr[i].style.display = "none";
-      }
-    }       
-  }
+    var input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("patientSearch");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("patientTable");
+    tr = table.getElementsByTagName("tr");
+    
+    for (i = 1; i < tr.length; i++) {
+        // Search across the first column (Name and ID)
+        td = tr[i].getElementsByTagName("td")[0];
+        if (td) {
+            txtValue = td.textContent || td.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }       
+    }
 }
 </script>
 

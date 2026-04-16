@@ -13,7 +13,7 @@ app.secret_key = os.getenv("FLASK_SECRET")
 
 print(f"DEBUG: DATABASE is {os.getenv('DATABASE')}")
 print(f"DEBUG: USER is {os.getenv('USER')}")
-# Don't print the actual password, just check if it exists
+
 print(f"DEBUG: PASSWORD {os.getenv('PASSWORD')} LOADED: {os.getenv('PASSWORD') is not None}")
 
 def get_db_connection():
@@ -52,7 +52,7 @@ def register_patient():
             return redirect(url_for('login_patient'))
         except Exception as e:
             conn.rollback()
-            flash("Error: Username or Email already exists.")
+            flash("Error: Username or Email can be already exists.\n", e)
         finally:
             cur.close()
             conn.close()
@@ -74,6 +74,9 @@ def login_patient():
         if user and check_password_hash(user['password_hash'], password):
             session['user_id'] = user['id']
             session['role'] = 'patient'
+            session['username'] = user['username']
+            session['name'] = user['name']
+            session['email'] = user['email']
             return redirect(url_for('patient_dashboard'))
         else:
             flash("Invalid credentials")
@@ -130,6 +133,8 @@ def login_doctor():
             session['user_id'] = doctor['id']
             session['role'] = 'doctor'
             session['name'] = doctor['name']
+            session['username'] = doctor['username'] 
+            session['email'] = doctor['email']
             return redirect(url_for('doctor_dashboard'))
         else:
             flash("Invalid doctor credentials.")
@@ -176,11 +181,11 @@ def doctor_dashboard():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    cur.execute("SELECT COUNT(*) FROM appointments WHERE doctor_id = %s AND status = 'approved'", (doctor_id,))
+    cur.execute("SELECT COUNT(DISTINCT patient_id) FROM appointments WHERE doctor_id = %s AND status = 'approved'", (doctor_id,))
     total_patients = cur.fetchone()['count']
     
-    cur.execute("SELECT COUNT(*) FROM messages WHERE receiver_id = %s AND sender_role = 'patient'", (doctor_id,))
-    total_messages = cur.fetchone()['count']
+    cur.execute("SELECT COUNT(*) FROM appointments WHERE doctor_id = %s", (doctor_id,))
+    total_queries = cur.fetchone()['count']
     
     cur.execute("""
     UPDATE appointments 
@@ -205,7 +210,7 @@ def doctor_dashboard():
     return render_template('doctor_dashboard.html', 
                            appointments=appointments, 
                            total_patients=total_patients,
-                           total_messages=total_messages)
+                           total_queries=total_queries)
 
 @app.route('/appointment/update/<int:appointment_id>/<string:status>', methods=['POST'])
 def update_appointment_status(appointment_id, status):
@@ -341,22 +346,37 @@ def doctor_profile():
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     if request.method == 'POST':
-        name = request.form['name']
-        specialization = request.form['specialization']
-        contact = request.form['contact']
+        new_center_id = request.form.get('medical_center_id')
+        name = request.form.get('name')
+        specialization = request.form.get('specialization')
+        contact = request.form.get('contact')
+        experience = request.form.get('experience')
         
-        cur.execute("""
-            UPDATE doctors SET name = %s, specialization = %s, contact_no = %s 
-            WHERE id = %s
-        """, (name, specialization, contact, doctor_id))
-        conn.commit()
-        flash("Profile updated successfully!")
+        try:
+            # 2. Update the database including medical_center_id
+            cur.execute("""
+                UPDATE doctors 
+                SET name = %s, specialization = %s, contact_no = %s, 
+                    years_of_experience = %s,
+                    medical_center_id = %s
+                WHERE id = %s
+            """, (name, specialization, contact, experience, new_center_id, doctor_id))
+            conn.commit()
+            
+            session['name'] = name
+            flash("Clinical Affiliation & Profile Synchronized!", "success")
+        except Exception as e:
+            conn.rollback()
+            flash(f"System Error: {str(e)}", "error")
 
     cur.execute("SELECT * FROM doctors WHERE id = %s", (doctor_id,))
     doctor = cur.fetchone()
+
+    cur.execute("SELECT id, name, type FROM medical_centers ORDER BY name ASC")
+    centers = cur.fetchall()
     cur.close()
     conn.close()
-    return render_template('doctor_profile.html', doctor=doctor)
+    return render_template('doctor_profile.html', doctor=doctor, centers=centers)
 
 @app.route('/doctor/patients')
 def manage_patients():
@@ -365,10 +385,8 @@ def manage_patients():
 
     doctor_id = session['user_id']
     conn = get_db_connection()
-    # Ensure you are using RealDictCursor so p.latest_appointment_id works in Jinja
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # This query joins patients with appointments to get the ID needed for the chat link
     cur.execute("""
         SELECT 
             p.id, 
@@ -382,12 +400,7 @@ def manage_patients():
         GROUP BY p.id, p.name, p.blood_group, p.contact_no
     """, (doctor_id,))
 
-    # cur.execute("""
-    # SELECT p.id, p.name, p.contact_no, p.blood_group, a.doctor_notes 
-    # FROM patients p 
-    # LEFT JOIN appointments a ON p.id = a.patient_id 
-    # WHERE a.doctor_id = %s
-    # """, (doctor_id,))
+    
     
     patients = cur.fetchall()
     cur.close()
@@ -404,12 +417,10 @@ def patient_details(patient_id):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
-    # 1. Fetch full Patient Profile
+
     cur.execute("SELECT * FROM patients WHERE id = %s", (patient_id,))
     patient = cur.fetchone()
-    
-    # 2. Fetch all appointments this patient has had (with any doctor, for full context)
-    # Or keep it to just this doctor if privacy is a concern.
+
     cur.execute("""
         SELECT a.*, d.name as doctor_name 
         FROM appointments a
@@ -438,7 +449,7 @@ def patient_profile():
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     if request.method == 'POST':
-        # Get data from form
+       
         name = request.form['name']
         contact = request.form['contact_no']
         address = request.form['address']
@@ -475,9 +486,9 @@ def messages_list():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Query to find all unique contacts this user has messaged or received from
+   
     if role == 'patient':
-        # Find doctors this patient has messaged
+        
         query = """
             SELECT DISTINCT d.id, d.name, d.specialization as subtext
             FROM doctors d
@@ -485,7 +496,7 @@ def messages_list():
                             OR (m.receiver_id = d.id AND m.sender_id = %s AND m.sender_role = 'patient')
         """
     else:
-        # Find patients this doctor has messaged
+        
         query = """
             SELECT DISTINCT p.id, p.name, p.blood_group as subtext
             FROM patients p
@@ -509,14 +520,14 @@ def chat(contact_id):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Get the name of the person you are chatting with
+   
     if role == 'patient':
         cur.execute("SELECT name FROM doctors WHERE id = %s", (contact_id,))
     else:
         cur.execute("SELECT name FROM patients WHERE id = %s", (contact_id,))
     recipient = cur.fetchone()
 
-    # Fetch message history
+    
     cur.execute("""
         SELECT * FROM messages 
         WHERE (sender_id = %s AND receiver_id = %s AND sender_role = %s)
